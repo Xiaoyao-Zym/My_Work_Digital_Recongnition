@@ -135,11 +135,11 @@ def parse_opt():
     parser.add_argument('--epochs', type=int, default=10, help='训练多少轮')
     parser.add_argument('--batch_size', type=int, default=10, help='批次大小')
     parser.add_argument('--lr', type=float, default=0.01, help='学习率')
-    parser.add_argument('--chinese', type=str, default='data/labels/figure.txt', help='字符集保存路径')
+    parser.add_argument('--chinese', type=str, default='CRNN/labels/figure.txt', help='字符集保存路径')
     parser.add_argument('--images', type=str, default='data/image/', help='你可以设置你所以图片的地址，像现在的默认值，也可以设置为data/images/'
                                                                               '这样你就需要在这个目录下要有训练集，验证集，测试集的图片，可以运行'
                                                                               'dataset/splitimages.py生成，但不建议使用第二种方式')
-    parser.add_argument('--labels', type=str, default='data2/labels/', help='标签的路径')
+    parser.add_argument('--labels', type=str, default='CRNN/labels/', help='标签的路径')
     parser.add_argument('--imgH', type=int, default=32)
     parser.add_argument('--nc', type=int, default=1)
     parser.add_argument('--nh', type=int, default=251)

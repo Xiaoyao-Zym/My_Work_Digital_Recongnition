@@ -3,12 +3,9 @@ My graduate work
 Documenting my graduate research journey on the subject of electronic   scale readings for s
 
 # requirements
-pytorch 0.4.1  
-opencv_python
-```bash
-cd Attention_ocr.pytorch
-pip install -r requirements.txt
-```
+pytorch 1.11.0 
+python 3.8.13
+
 
 # Test
 pretrained model coming soon

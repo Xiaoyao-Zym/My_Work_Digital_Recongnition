@@ -282,8 +282,9 @@ if __name__ == "__main__":
 
     # TODO set parameters
    
-    base_data_dir =  '../data/'  # 数据集根目录，请将数据下载到此位置
-    dataset=Analysis_Recognition_Dataset(base_data_dir)
+    base_data_dir =  'data/'  # 数据集根目录，请将数据下载到此位置
+    char_data_dir = 'Transformer_Digital_Recongnition/labels/'
+    dataset=Analysis_Recognition_Dataset(char_data_dir ,base_data_dir)
     device_name = 'cuda' if torch.cuda.is_available() else 'cpu'
     device = torch.device(device_name)
     nrof_epochs = 20

@@ -7,16 +7,17 @@ os.chdir(os.path.dirname(cur_dir))
 
 
 class Analysis_Recognition_Dataset():
-    def __init__(self, base_data_dir):
+
+    def __init__(self, char_data_dir, base_data_dir):
         # 训练数据集和验证数据集所在路径
-        self. train_img_dir = os.path.join(base_data_dir, 'train')
-        self. valid_img_dir = os.path.join(base_data_dir, 'val')
-            # 训练集和验证集标签文件路径
-        self.train_lbl_path = os.path.join(base_data_dir, 'train.txt')
-        self.valid_lbl_path = os.path.join(base_data_dir, 'val.txt')
+        self.train_img_dir = os.path.join(base_data_dir, 'train')
+        self.valid_img_dir = os.path.join(base_data_dir, 'val')
+        # 训练集和验证集标签文件路径
+        self.train_lbl_path = os.path.join(char_data_dir, 'train.txt')
+        self.valid_lbl_path = os.path.join(char_data_dir, 'val.txt')
         # 中间文件存储路径，存储标签字符与其id的映射关系
-        self.lbl2id_map_path = os.path.join(base_data_dir, 'figure.txt')
-        
+        self.lbl2id_map_path = os.path.join(char_data_dir, 'figure.txt')
+
     def statistics_label_cnt(self, lbl_path, lbl_cnt_map):
         """
         统计标签文件中都包含哪些label以及各自出现的次数
@@ -46,8 +47,6 @@ class Analysis_Recognition_Dataset():
                 lbl_len = len(lbl_str)
                 max_len = max_len if max_len > lbl_len else lbl_len
         return max_len
-        
-
 
     def load_lbl2id_map(self):
         """
@@ -64,8 +63,8 @@ class Analysis_Recognition_Dataset():
                 lbl2id_map[label] = cur_id
                 id2lbl_map[cur_id] = label
         return lbl2id_map, id2lbl_map
-    
-    def label_to_id(self,  lbl_cnt_map):
+
+    def label_to_id(self, lbl_cnt_map):
         # 构造 label - id 之间的映射
         print("\n\n构造 label - id 之间的映射")
         lbl2id_map = dict()
@@ -80,13 +79,14 @@ class Analysis_Recognition_Dataset():
             cur_id += 1
 
         # 保存 label - id 之间的映射 到txt文件
-        with open(self.lbl2id_map_path, 'w', encoding='utf-8') as writer:  # 参数encoding是可选项，部分设备并未默认为utf-8
+        with open(self.lbl2id_map_path, 'w',
+                  encoding='utf-8') as writer:  # 参数encoding是可选项，部分设备并未默认为utf-8
             for lbl in lbl2id_map.keys():
                 cur_id = lbl2id_map[lbl]
                 print(lbl, cur_id)
                 line = lbl + '\t' + str(cur_id) + '\n'
                 writer.write(line)
-        
+
     def analysis_image_shape(self):
         # 分析数据集图片尺寸
         print("\n\n 分析数据集图片尺寸")
@@ -118,22 +118,28 @@ class Analysis_Recognition_Dataset():
 
     def analysis_recognition_dataset(self):
         # 统计数据集中出现的所有的label中包含字符最多的有多少字符
-        max_label_len = max(self.statistics_max_len_label(self.train_lbl_path),  self.statistics_max_len_label(self.valid_lbl_path))  # 全数据集最长label
+        max_label_len = max(self.statistics_max_len_label(self.train_lbl_path),
+                            self.statistics_max_len_label(
+                                self.valid_lbl_path))  # 全数据集最长label
         print(f"数据集中包含字符最多的label长度为{max_label_len}")
-         # 统计数据集中出现的所有的符号
+        # 统计数据集中出现的所有的符号
         lbl_cnt_map = dict()  # 用于存储字符出现次数的字典
-        self.statistics_label_cnt(self.train_lbl_path, lbl_cnt_map)  # 训练集中字符出现次数统计
+        self.statistics_label_cnt(self.train_lbl_path,
+                                  lbl_cnt_map)  # 训练集中字符出现次数统计
         print("训练集中出现的label")
         print(lbl_cnt_map)
-        self.statistics_label_cnt(self.valid_lbl_path, lbl_cnt_map)  # 训练集和验证集中字符出现次数统计
+        self.statistics_label_cnt(self.valid_lbl_path,
+                                  lbl_cnt_map)  # 训练集和验证集中字符出现次数统计
         print("训练集+验证集中出现的label")
         print(lbl_cnt_map)
         self.label_to_id(lbl_cnt_map)
         self.analysis_image_shape()
 
+
 if __name__ == "__main__":
 
     # 数据集根目录
-    base_data_dir = '../data/'
-    dataset=Analysis_Recognition_Dataset(base_data_dir)
+    base_data_dir = 'data/'
+    char_data_dir = '../Transformer_Digital_Recongnition/labels/'
+    dataset = Analysis_Recognition_Dataset(char_data_dir, base_data_dir)
     dataset.analysis_recognition_dataset()
