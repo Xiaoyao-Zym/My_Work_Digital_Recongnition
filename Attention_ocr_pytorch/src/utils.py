@@ -1,6 +1,9 @@
 # encoding: utf-8
 #  -*- encoding: utf-8 -*-
-
+import sys
+import os
+#加上下面代码
+os.chdir(sys.path[0])
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -11,7 +14,7 @@ import random
 import numpy as np
 import cv2
 
-with open('./data/figure.txt') as f:
+with open('./labels/figure.txt') as f:
     data = f.readlines()
     alphabet = [x.rstrip() for x in data]
     alphabet = ''.join(alphabet)       # python2不加decode的时候会乱码

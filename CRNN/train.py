@@ -1,9 +1,8 @@
 from dataclasses import field
 import sys
 import os
-curPath = os.path.abspath(os.path.dirname(__file__))
-rootPath = os.path.split(curPath)[0]
-sys.path.append(rootPath)
+#加上下面代码
+os.chdir(sys.path[0])
 import torch
 import torch.nn as nn
 import argparse
@@ -52,7 +51,7 @@ def train(opt):
 
     str_time=time.strftime('%Y-%m-%d', time.localtime())
     df = pd.DataFrame(columns=['time', 'step', 'train_loss', 'train_acc', 'val_loss', 'val_acc'])#列名
-    file_path='log/'+str_time+'.csv'
+    file_path='./log/'+str_time+'.csv'
     df.to_csv(file_path, index=False) #路径可以根据需要更改
     s_time = time.time()
     for epoch in range(1, opt.epochs + 1):
@@ -135,16 +134,16 @@ def parse_opt():
     parser.add_argument('--epochs', type=int, default=10, help='训练多少轮')
     parser.add_argument('--batch_size', type=int, default=10, help='批次大小')
     parser.add_argument('--lr', type=float, default=0.01, help='学习率')
-    parser.add_argument('--chinese', type=str, default='CRNN/labels/figure.txt', help='字符集保存路径')
-    parser.add_argument('--images', type=str, default='data/image/', help='你可以设置你所以图片的地址，像现在的默认值，也可以设置为data/images/'
+    parser.add_argument('--chinese', type=str, default='labels/figure.txt', help='字符集保存路径')
+    parser.add_argument('--images', type=str, default='../data/image/', help='你可以设置你所以图片的地址，像现在的默认值，也可以设置为data/images/'
                                                                               '这样你就需要在这个目录下要有训练集，验证集，测试集的图片，可以运行'
                                                                               'dataset/splitimages.py生成，但不建议使用第二种方式')
-    parser.add_argument('--labels', type=str, default='CRNN/labels/', help='标签的路径')
+    parser.add_argument('--labels', type=str, default='./labels/', help='标签的路径')
     parser.add_argument('--imgH', type=int, default=32)
     parser.add_argument('--nc', type=int, default=1)
     parser.add_argument('--nh', type=int, default=251)
     parser.add_argument('--val_epoch', type=int, default=1, help='经过多少个epoch验证一次')
-    parser.add_argument('--save_all', action='store_true', default=True, help='是否保存所有模型')
+    parser.add_argument('--save_all', action='store_true', default=False, help='是否保存所有模型')
     parser.add_argument('--best', type=float, default=0.5, help='如果不保存所有模型，他就之会保存最好的和最后的模型，最好的模型准确率必须高于best才会保存')
     parser.add_argument('--test', action='store_true', default=False, help='模型训练好是否测试')
     parser.add_argument('--all', action='store_true', default=False,

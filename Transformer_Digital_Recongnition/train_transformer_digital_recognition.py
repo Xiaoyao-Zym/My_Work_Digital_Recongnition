@@ -14,7 +14,6 @@ from transformer import *
 
 #加上下面代码
 import os, sys
-
 os.chdir(sys.path[0])
 
 
