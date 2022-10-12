@@ -1,11 +1,7 @@
 # -*- encoding: utf-8 -*-
-import os
 import cv2
 
-cur_dir = os.path.realpath(__file__)
-os.chdir(os.path.dirname(cur_dir))
-
-
+import os
 class Analysis_Recognition_Dataset():
 
     def __init__(self, char_data_dir, base_data_dir):
@@ -137,9 +133,9 @@ class Analysis_Recognition_Dataset():
 
 
 if __name__ == "__main__":
-
     # 数据集根目录
-    base_data_dir = 'data/'
-    char_data_dir = '../Transformer_Digital_Recongnition/labels/'
+    base_data_dir = '../../data/'
+    char_data_dir = '../labels/'
     dataset = Analysis_Recognition_Dataset(char_data_dir, base_data_dir)
     dataset.analysis_recognition_dataset()
+    

@@ -150,7 +150,7 @@ def parse_opt():
     parser.add_argument('--all', action='store_true', default=False,
                         help='如果开启测试，False的话就只会输出预测错误的，True就不管预测正确还是错误，都会输出')
     parser.add_argument('--weights', type=str, default='', help='如果因为种种原因导致训练停止，但保存了模型，可以从这个模型开始训练，填入模型的路径')
-    parser.add_argument('--name', type=str, default='log/output/checkpoint/', help='模型保存的位置')
+    parser.add_argument('--name', type=str, default='CRNN/log/output/checkpoint/', help='模型保存的位置')
     opt = parser.parse_args()
     return opt
 

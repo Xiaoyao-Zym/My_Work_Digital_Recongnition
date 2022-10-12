@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-import os
+
 from re import A
 import time
 import copy
@@ -12,17 +12,29 @@ from dataset.analysis_recognition_dataset import Analysis_Recognition_Dataset
 from train_utils import *
 from transformer import *
 
+#加上下面代码
+import os, sys
+
+os.chdir(sys.path[0])
+
 
 class Recognition_Dataset(object):
 
-    def __init__(self, dataset_root_dir, lbl2id_map, sequence_len, max_ratio, phase='train', pad=0):
+    def __init__(self,
+                 charset_root_dir,
+                 dataset_root_dir,
+                 lbl2id_map,
+                 sequence_len,
+                 max_ratio,
+                 phase='train',
+                 pad=0):
 
         if phase == 'train':
             self.img_dir = os.path.join(dataset_root_dir, 'train')
-            self.lbl_path = os.path.join(dataset_root_dir, 'train.txt')
+            self.lbl_path = os.path.join(charset_root_dir, 'train.txt')
         else:
             self.img_dir = os.path.join(dataset_root_dir, 'val')
-            self.lbl_path = os.path.join(dataset_root_dir, 'val.txt')
+            self.lbl_path = os.path.join(charset_root_dir, 'val.txt')
         self.lbl2id_map = lbl2id_map
         self.pad = pad  # padding标识符的id，默认0
         self.sequence_len = sequence_len  # 序列长度
@@ -101,7 +113,7 @@ class Recognition_Dataset(object):
         for i in range(len(lbl_str), self.sequence_len):
             gt.append(0)
         # 截断为预设的最大序列长度
-        gt = gt[:self.sequence_len] # 理论上需要sequence+2
+        gt = gt[:self.sequence_len]  # 理论上需要sequence+2
 
         # decoder的输入
         decode_in = gt[:-1]
@@ -123,8 +135,8 @@ class Recognition_Dataset(object):
         padd 和 future words 均在mask中用0表示
         """
         tgt_mask = (tgt != pad)
-        tgt_mask = tgt_mask & subsequent_mask(
-            tgt.size(-1)).type_as(tgt_mask.data)
+        tgt_mask = tgt_mask & subsequent_mask(tgt.size(-1)).type_as(
+            tgt_mask.data)
         tgt_mask = tgt_mask.squeeze(0)  # subsequent返回值的shape是(1, N, N)
         return tgt_mask
 
@@ -139,7 +151,8 @@ class OCR_EncoderDecoder(nn.Module):
     Base for this and many other models.
     """
 
-    def __init__(self, encoder, decoder, src_embed, src_position, tgt_embed, generator):
+    def __init__(self, encoder, decoder, src_embed, src_position, tgt_embed,
+                 generator):
         super(OCR_EncoderDecoder, self).__init__()
         self.encoder = encoder
         self.decoder = decoder
@@ -197,8 +210,7 @@ def make_ocr_model(tgt_vocab, N=6, d_model=512, d_ff=2048, h=8, dropout=0.1):
     model = OCR_EncoderDecoder(
         Encoder(EncoderLayer(d_model, c(attn), c(ff), dropout), N),
         Decoder(DecoderLayer(d_model, c(attn), c(attn), c(ff), dropout), N),
-        backbone,
-        c(position),
+        backbone, c(position),
         nn.Sequential(Embeddings(d_model, tgt_vocab), c(position)),
         Generator(d_model, tgt_vocab))
 
@@ -250,17 +262,20 @@ def run_epoch(data_loader, model, loss_compute, device=None):
 
 # greedy decode
 def greedy_decode(model, src, src_mask, max_len, start_symbol, end_symbol):
-    memory = model.encode(src, src_mask) # memory.shape=[1,24,512]
+    memory = model.encode(src, src_mask)  # memory.shape=[1,24,512]
     # ys代表目前已生成的序列，最初为仅包含一个起始符的序列，不断将预测结果追加到序列最后
-    ys = torch.ones(1, 1).fill_(start_symbol).type_as(src.data).long() # ys=[[1]]
+    ys = torch.ones(1,
+                    1).fill_(start_symbol).type_as(src.data).long()  # ys=[[1]]
     for i in range(max_len - 1):
-        out = model.decode(memory, src_mask,
-                           ys, subsequent_mask(ys.size(1)).type_as(src.data)) # out.shape=[1,1,512]
-        prob = model.generator(out[:, -1]) # [1,90]
+        out = model.decode(memory, src_mask, ys,
+                           subsequent_mask(ys.size(1)).type_as(
+                               src.data))  # out.shape=[1,1,512]
+        prob = model.generator(out[:, -1])  # [1,90]
         _, next_word = torch.max(prob, dim=1)
         next_word = next_word.data[0]
-        next_word = torch.ones(1, 1).type_as(src.data).fill_(next_word).long() # next_word=[[7]]
-        ys = torch.cat([ys, next_word], dim=1) # ys=[[1,7]]
+        next_word = torch.ones(1, 1).type_as(
+            src.data).fill_(next_word).long()  # next_word=[[7]]
+        ys = torch.cat([ys, next_word], dim=1)  # ys=[[1,7]]
 
         next_word = int(next_word)
         if next_word == end_symbol:
@@ -281,10 +296,10 @@ def judge_is_correct(pred, label):
 if __name__ == "__main__":
 
     # TODO set parameters
-   
-    base_data_dir =  'data/'  # 数据集根目录，请将数据下载到此位置
-    char_data_dir = 'Transformer_Digital_Recongnition/labels/'
-    dataset=Analysis_Recognition_Dataset(char_data_dir ,base_data_dir)
+
+    base_data_dir = '../data/'  # 数据集根目录，请将数据下载到此位置
+    char_data_dir = './labels/'
+    dataset = Analysis_Recognition_Dataset(char_data_dir, base_data_dir)
     device_name = 'cuda' if torch.cuda.is_available() else 'cpu'
     device = torch.device(device_name)
     nrof_epochs = 20
@@ -293,23 +308,35 @@ if __name__ == "__main__":
 
     # 读取label-id映射关系记录文件
     lbl2id_map_path = dataset.lbl2id_map_path
-    lbl2id_map, id2lbl_map =dataset.load_lbl2id_map()
+    lbl2id_map, id2lbl_map = dataset.load_lbl2id_map()
 
     # 统计数据集中出现的所有的label中包含字符最多的有多少字符，数据集构造gt信息需要用到
     train_lbl_path = dataset.train_lbl_path
     valid_lbl_path = dataset.valid_lbl_path
-    train_max_label_len = dataset.statistics_max_len_label(train_lbl_path)  # train_max_label_len = 6
-    valid_max_label_len = dataset.statistics_max_len_label(valid_lbl_path)  # valid_max_label_len = 6
+    train_max_label_len = dataset.statistics_max_len_label(
+        train_lbl_path)  # train_max_label_len = 6
+    valid_max_label_len = dataset.statistics_max_len_label(
+        valid_lbl_path)  # valid_max_label_len = 6
     # 数据集中字符数最多的一个case作为制作的gt的sequence_len
     # sequence_len = 21
     sequence_len = max(train_max_label_len, valid_max_label_len)
 
     # 构造 dataloader
     max_ratio = 6  # 图片预处理时 宽/高 的最大值，不超过就保比例resize，超过会强行压缩
-    train_dataset = Recognition_Dataset(
-        base_data_dir, lbl2id_map, sequence_len, max_ratio, 'train', pad=0)
-    valid_dataset = Recognition_Dataset(
-        base_data_dir, lbl2id_map, sequence_len, max_ratio, 'valid', pad=0)
+    train_dataset = Recognition_Dataset(char_data_dir,
+                                        base_data_dir,
+                                        lbl2id_map,
+                                        sequence_len,
+                                        max_ratio,
+                                        'train',
+                                        pad=0)
+    valid_dataset = Recognition_Dataset(char_data_dir,
+                                        base_data_dir,
+                                        lbl2id_map,
+                                        sequence_len,
+                                        max_ratio,
+                                        'valid',
+                                        pad=0)
     train_loader = torch.utils.data.DataLoader(train_dataset,
                                                batch_size=batch_size,
                                                shuffle=True,
@@ -323,23 +350,29 @@ if __name__ == "__main__":
     # use transformer as ocr recognize model
     tgt_vocab = len(lbl2id_map.keys())
     d_model = 512
-    ocr_model = make_ocr_model(
-        tgt_vocab, N=5, d_model=d_model, d_ff=2048, h=8, dropout=0.1)
+    ocr_model = make_ocr_model(tgt_vocab,
+                               N=5,
+                               d_model=d_model,
+                               d_ff=2048,
+                               h=8,
+                               dropout=0.1)
     ocr_model.to(device)
-
     pretrain_model = bool(
         int(input("Whether to use pretrain_model?(1 or 0)\t")))
 
     if not pretrain_model:
         # train prepare
-        criterion = LabelSmoothing(
-            size=tgt_vocab, padding_idx=0, smoothing=0.0)
+        criterion = LabelSmoothing(size=tgt_vocab,
+                                   padding_idx=0,
+                                   smoothing=0.0)
         # optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, ocr_model.parameters()),
         #                            lr=0,
         #                            betas=(0.9, 0.98),
         #                            eps=1e-9)
-        optimizer = torch.optim.Adam(
-            ocr_model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9)
+        optimizer = torch.optim.Adam(ocr_model.parameters(),
+                                     lr=0,
+                                     betas=(0.9, 0.98),
+                                     eps=1e-9)
         model_opt = NoamOpt(d_model, 1, 400, optimizer)
 
         for epoch in range(nrof_epochs):
@@ -347,26 +380,26 @@ if __name__ == "__main__":
 
             print("train...")
             ocr_model.train()
-            loss_compute = SimpleLossCompute(
-                ocr_model.generator, criterion, model_opt)
-            train_mean_loss = run_epoch(
-                train_loader, ocr_model, loss_compute, device)
+            loss_compute = SimpleLossCompute(ocr_model.generator, criterion,
+                                             model_opt)
+            train_mean_loss = run_epoch(train_loader, ocr_model, loss_compute,
+                                        device)
 
             if epoch % 10 == 0:
                 print("valid...")
                 ocr_model.eval()
-                valid_loss_compute = SimpleLossCompute(
-                    ocr_model.generator, criterion, None)
-                valid_mean_loss = run_epoch(
-                    valid_loader, ocr_model, valid_loss_compute, device)
+                valid_loss_compute = SimpleLossCompute(ocr_model.generator,
+                                                       criterion, None)
+                valid_mean_loss = run_epoch(valid_loader, ocr_model,
+                                            valid_loss_compute, device)
                 print(f"valid loss: {valid_mean_loss}")
 
         # save model
-        torch.save(ocr_model.state_dict(), 'log/trained_model/ocr_model.pt')
+        torch.save(ocr_model.state_dict(), './log/trained_model/ocr_model.pt')
 
     else:
-        ocr_model.load_state_dict(torch.load(
-            model_save_path, map_location=device))
+        ocr_model.load_state_dict(
+            torch.load(model_save_path, map_location=device))
 
     # 训练结束，使用贪心的解码方式推理训练集和验证集，统计正确率
     ocr_model.eval()
@@ -385,8 +418,12 @@ if __name__ == "__main__":
             cur_encode_mask = encode_mask[i].unsqueeze(0)
             cur_decode_out = decode_out[i]
 
-            pred_result = greedy_decode(
-                ocr_model, cur_img_input, cur_encode_mask, max_len=sequence_len, start_symbol=1, end_symbol=2)
+            pred_result = greedy_decode(ocr_model,
+                                        cur_img_input,
+                                        cur_encode_mask,
+                                        max_len=sequence_len,
+                                        start_symbol=1,
+                                        end_symbol=2)
             pred_result = pred_result.cpu()
 
             is_correct = judge_is_correct(pred_result, cur_decode_out)
@@ -399,7 +436,6 @@ if __name__ == "__main__":
                 print(pred_result)
     total_correct_rate = total_correct_num / total_img_num * 100
     print(f"total correct rate of trainset: {total_correct_rate}%")
-
     print("\n------------------------------------------------")
     print("greedy decode validset")
     total_img_num = 0
@@ -415,8 +451,12 @@ if __name__ == "__main__":
             cur_encode_mask = encode_mask[i].unsqueeze(0)
             cur_decode_out = decode_out[i]
 
-            pred_result = greedy_decode(
-                ocr_model, cur_img_input, cur_encode_mask, max_len=sequence_len, start_symbol=1, end_symbol=2)
+            pred_result = greedy_decode(ocr_model,
+                                        cur_img_input,
+                                        cur_encode_mask,
+                                        max_len=sequence_len,
+                                        start_symbol=1,
+                                        end_symbol=2)
             pred_result = pred_result.cpu()
 
             is_correct = judge_is_correct(pred_result, cur_decode_out)
