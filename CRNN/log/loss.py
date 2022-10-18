@@ -28,7 +28,6 @@ import time
 #          path='log/output/'
 #        plt.savefig(path+str_time+ str("{:.2f}".format(y2_vals[-1]))+'.jpg', bbox_inches='tight')
 import os
-from markdown import markdown
 import pandas as pd
 import matplotlib.pyplot as plt
 
