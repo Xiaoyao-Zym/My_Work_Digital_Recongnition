@@ -50,8 +50,8 @@ def loss(isTrue, data_path):
     num_list = log_data.loc[:, 'step']
     plt.semilogy(num_list, train_loss_list, ls='-', color='orange',
                  marker="o")  # 绘制x,y的折线图
-    plt.semilogy(num_list, train_acc_list, ls='-', color='pink', marker="o")
-    plt.semilogy(num_list, val_loss_list, ls='-.', color='orange',
+    plt.semilogy(num_list, train_acc_list, ls='-', color='cyan', marker="o")
+    plt.semilogy(num_list, val_loss_list, ls='-.', color='blue',
                  marker="d")  # 绘制x,y的折线图
     plt.semilogy(num_list, val_acc_list, ls='-.', color='pink', marker="d")
     plt.legend(labels=['train_loss', 'train_acc', 'val_loss', 'val_acc'],
@@ -59,7 +59,7 @@ def loss(isTrue, data_path):
     plt.xlabel('epoch')
     plt.ylabel('loss/acc')
     plt.title('Training Curve')
-    file_image= str_time + '_' +str("{:.2f}".format(val_acc_list[len(val_acc_list) - 1])) +'.jpg'
+    file_image= str_time + '-' +str("{:.2f}".format(val_acc_list[len(val_acc_list) - 1])) +'.jpg'
     image_path=os.path.join(root_path, file_image)
     if isTrue:
         plt.savefig(image_path)
