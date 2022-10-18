@@ -163,7 +163,7 @@ class CRNN(nn.Module):
 
     def forward(self, input,  length):
         conv = self.cnn(input) #input: [10, 1, 32, 280], 
-        print(conv.size())
+        print(conv.size())# [10, 512, 1, 251]
         b, c, h, w = conv.size() #output: ([10, 512, 1, 251])
         assert h == 1, '图片高度经过卷积之后必须为1'
         conv = conv.squeeze(2)   #output: ([10, 512, 251])
