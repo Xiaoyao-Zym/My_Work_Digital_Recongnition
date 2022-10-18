@@ -23,7 +23,7 @@ from log.loss import loss
 def parse_opt():
     parser = argparse.ArgumentParser(description='train')
     parser.add_argument('--epochs', type=int, default=20, help='训练多少轮')
-    parser.add_argument('--batch_size', type=int, default=32, help='批次大小')
+    parser.add_argument('--batch_size', type=int, default=64, help='批次大小')
     parser.add_argument('--lr', type=float, default=0.01, help='学习率')
     parser.add_argument('--chinese', type=str, default='./labels/figure.txt', help='字符集保存路径')
     parser.add_argument('--images', type=str, default='../data/image/', help='你可以设置你所以图片的地址，像现在的默认值，也可以设置为data/images/'
@@ -33,7 +33,7 @@ def parse_opt():
     parser.add_argument('--imgH', type=int, default=32)
     parser.add_argument('--nc', type=int, default=1)
     parser.add_argument('--nh', type=int, default=251)
-    parser.add_argument('--val_epoch', type=int, default=4, help='经过多少个epoch验证一次')
+    parser.add_argument('--val_epoch', type=int, default=1, help='经过多少个epoch验证一次')
     parser.add_argument('--save_all', action='store_true', default=True, help='是否保存所有模型')
     parser.add_argument('--best', type=float, default=0.5, help='如果不保存所有模型，他就之会保存最好的和最后的模型，最好的模型准确率必须高于best才会保存')
     parser.add_argument('--test', action='store_true', default=False, help='模型训练好是否测试')
