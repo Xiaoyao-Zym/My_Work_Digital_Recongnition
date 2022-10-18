@@ -3,7 +3,7 @@
 from re import A
 import time
 import copy
-
+import pandas as pd
 import torchvision.models as models
 import torchvision.transforms as transforms
 from PIL import Image
@@ -358,7 +358,10 @@ if __name__ == "__main__":
     ocr_model.to(device)
     pretrain_model = bool(
         int(input("Whether to use pretrain_model?(1 or 0)\t")))
-
+    
+    str_time=time.strftime('%Y-%m-%d', time.localtime())
+    df = pd.DataFrame(columns=['time', 'step', 'train_loss', 'valid_loss'])#列名
+    file_path='/train_record/'+str_time+'.csv'
     if not pretrain_model:
         # train prepare
         criterion = LabelSmoothing(size=tgt_vocab,
@@ -383,7 +386,7 @@ if __name__ == "__main__":
                                              model_opt)
             train_mean_loss = run_epoch(train_loader, ocr_model, loss_compute,
                                         device)
-
+            
             if epoch % 10 == 0:
                 print("valid...")
                 ocr_model.eval()
