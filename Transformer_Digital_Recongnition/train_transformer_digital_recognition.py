@@ -362,15 +362,17 @@ if __name__ == "__main__":
     ocr_model.to(device)
     pretrain_model = bool(
         int(input("Whether to use pretrain_model?(1 or 0)\t")))
-    
+    root_path=os.path.join( './log/trained_record/', str_time)
+    if not os.path.exists(root_path):
+        os.makedirs(root_path)
     df1 = pd.DataFrame(columns=['time', 'step', 'train_loss'])  #列名
-    file_path_train = './log/trained_record/' + str_time + '-train.csv'
+    file_path_train = root_path+ '/train.csv'
     df1.to_csv(file_path_train, index=False) #路径可以根据需要更改
     df2 = pd.DataFrame(columns=['time', 'step', 'valid_loss'])  #列名
-    file_path_valid = './log/trained_record/' + str_time + '-valid.csv'
+    file_path_valid = root_path + '/valid.csv'
     df2.to_csv(file_path_valid, index=False) #路径可以根据需要更改
     df3 = pd.DataFrame(columns=['time', 'step', 'train_loss', 'valid_loss'])  #列名
-    file_path = './log/trained_record/' + str_time + '.csv'
+    file_path = root_path + '/loss.csv'
     df3.to_csv(file_path, index=False) #路径可以根据需要更改
     if not pretrain_model:
         # train prepare

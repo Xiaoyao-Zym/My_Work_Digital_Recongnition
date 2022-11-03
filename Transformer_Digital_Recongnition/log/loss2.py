@@ -19,12 +19,12 @@ def loss_map(isTrue, file_path):
     plt.subplot(2, 1, 1)
     plt.plot(train_list, train_loss, ls='-', color='orange',
                  marker="o")  # 绘制x,y的折线图
-    plt.title("train_loss")
+    plt.legend("train_loss")
     
     plt.subplot(2, 1, 2)
     plt.plot(train_list, valid_loss, ls='-', color='b', marker="h")
     plt.xlabel("step")
-    plt.title("valid_loss")
+    plt.legend("valid_loss")
     
     file_image= str_time + '_' +str("{:.3f}".format(valid_loss[len(valid_loss) - 1])) +'.jpg'
     image_path=os.path.join(root_path, file_image)
