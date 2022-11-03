@@ -7,13 +7,15 @@ import pandas as pd
 import torchvision.models as models
 import torchvision.transforms as transforms
 from PIL import Image
-
+from log.loss import loss_Comput
+from log.loss2 import loss_map
 from dataset.analysis_recognition_dataset import Analysis_Recognition_Dataset
 from train_utils import *
 from transformer import *
-
+str_time = time.strftime('%Y-%m-%d', time.localtime())
 #加上下面代码
 import os, sys
+
 os.chdir(sys.path[0])
 
 
@@ -227,7 +229,7 @@ def make_ocr_model(tgt_vocab, N=6, d_model=512, d_ff=2048, h=8, dropout=0.1):
     return model
 
 
-def run_epoch(data_loader, model, loss_compute, device=None):
+def run_epoch(data_loader, model, loss_compute, file_path, device=None):
     "Standard Training and Logging Function"
     start = time.time()
     total_tokens = 0
@@ -243,21 +245,23 @@ def run_epoch(data_loader, model, loss_compute, device=None):
         decode_out = decode_out.to(device)  # [64,20]
         decode_mask = decode_mask.to(device)  # [64,20,20]
         ntokens = torch.sum(ntokens).to(device)
-
         out = model.forward(img_input, decode_in, encode_mask, decode_mask)
-
         loss = loss_compute(out, decode_out, ntokens)
         total_loss += loss
         total_tokens += ntokens
         tokens += ntokens
-        if i % 50 == 1:
+        if i % 10 == 0:
             elapsed = time.time() - start
             print("Epoch Step: %d Loss: %f Tokens per Sec: %f" %
                   (i, loss / ntokens, tokens / elapsed))
             start = time.time()
             tokens = 0
+            out_loss= "{:.5f}".format(loss/ntokens)
+            step=i+len(data_loader)*epoch
+            list = [str_time, step, out_loss]
+            data = pd.DataFrame([list])
+            data.to_csv(file_path, mode='a', header=False, index=False)  #mode设为a,就可以向csv文件追加数据了
     return total_loss / total_tokens
-
 
 # greedy decode
 def greedy_decode(model, src, src_mask, max_len, start_symbol, end_symbol):
@@ -298,14 +302,12 @@ if __name__ == "__main__":
 
     base_data_dir = '../data/'  # 数据集根目录，请将数据下载到此位置
     char_data_dir = './labels/'
-    str_time=time.strftime('%Y-%m-%d', time.localtime())
-    model_save_path = './weights/'+str_time+'/'
+    model_save_path = './weights/' 
     dataset = Analysis_Recognition_Dataset(char_data_dir, base_data_dir)
     device_name = 'cuda' if torch.cuda.is_available() else 'cpu'
     device = torch.device(device_name)
     nrof_epochs = 20
-    batch_size = 1
-   
+    batch_size = 16
 
     # 读取label-id映射关系记录文件
     lbl2id_map_path = dataset.lbl2id_map_path
@@ -361,9 +363,15 @@ if __name__ == "__main__":
     pretrain_model = bool(
         int(input("Whether to use pretrain_model?(1 or 0)\t")))
     
-
-    df = pd.DataFrame(columns=['time', 'step', 'train_loss', 'valid_loss'])#列名
-    file_path='./log//train_record/'+str_time+'.csv'
+    df1 = pd.DataFrame(columns=['time', 'step', 'train_loss'])  #列名
+    file_path_train = './log/trained_record/' + str_time + '-train.csv'
+    df1.to_csv(file_path_train, index=False) #路径可以根据需要更改
+    df2 = pd.DataFrame(columns=['time', 'step', 'valid_loss'])  #列名
+    file_path_valid = './log/trained_record/' + str_time + '-valid.csv'
+    df2.to_csv(file_path_valid, index=False) #路径可以根据需要更改
+    df3 = pd.DataFrame(columns=['time', 'step', 'train_loss', 'valid_loss'])  #列名
+    file_path = './log/trained_record/' + str_time + '.csv'
+    df3.to_csv(file_path, index=False) #路径可以根据需要更改
     if not pretrain_model:
         # train prepare
         criterion = LabelSmoothing(size=tgt_vocab,
@@ -386,25 +394,34 @@ if __name__ == "__main__":
             ocr_model.train()
             loss_compute = SimpleLossCompute(ocr_model.generator, criterion,
                                              model_opt)
-            train_mean_loss = run_epoch(train_loader, ocr_model, loss_compute,
-                                        device)
+            train_mean_loss = run_epoch(train_loader, ocr_model, loss_compute, 
+                                        file_path_train , device)
+            
             train_loss="{:.5f}".format(train_mean_loss)
-            if epoch % 10 == 0:
+            if epoch % 1 == 0:
                 print("valid...")
                 ocr_model.eval()
                 valid_loss_compute = SimpleLossCompute(ocr_model.generator,
                                                        criterion, None)
                 valid_mean_loss = run_epoch(valid_loader, ocr_model,
-                                            valid_loss_compute, device)
+                                            valid_loss_compute, file_path_valid ,device)
                 valid_loss="{:.5f}".format(valid_mean_loss)
-                print(f"valid loss: {valid_mean_loss}")
-                list = [str_time,step,train_loss, valid_loss]
-            
+                # print(f"valid loss: {valid_mean_loss}")
+                list = [str_time, step, train_loss, valid_loss]
             data = pd.DataFrame([list])
-            data.to_csv(file_path, mode='a',header=False,index=False)#mode设为a,就可以向csv文件追加数据了
+            data.to_csv(file_path, mode='a', header=False, index=False)  #mode设为a,就可以向csv文件追加数据了
+            
+            if(epoch==(nrof_epochs-1)):
+                loss_Comput(True, file_path_train, file_path_valid)
+                loss_map(True, file_path)
+            else:
+                loss_Comput(False, file_path_train, file_path_valid)
+                loss_map(False, file_path)
             # save model
-            torch.save(ocr_model.state_dict(), model_save_path+ '/'+str('%03d' %epoch) + '-train_loss' + str("{:.2f}".format(train_loss))+'.pt')
-
+            # torch.save(
+            #     ocr_model.state_dict(), model_save_path + '/'+ str('%03d' % epoch) +
+            #     '-train_loss' + str("{:.2f}".format(train_loss)) + '.pt')
+            torch.save(ocr_model.state_dict(), model_save_path + '/'+str_time+ '.pt')
     else:
         ocr_model.load_state_dict(
             torch.load(model_save_path, map_location=device))

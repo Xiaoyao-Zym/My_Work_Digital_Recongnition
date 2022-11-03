@@ -31,29 +31,37 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def loss(isTrue, data_path):
+def loss_Comput(isTrue, train_path, valid_path):
     #log_data = pd.read_csv('./log/train_record/' + str_time + '.csv')  # 打开csv文件
     str_time=time.strftime('%Y-%m-%d_', time.localtime())
     root_path =os.path.join(os.path.realpath(os.curdir), 'log', 'loss') #获取当前目录的绝对路径
-    print(root_path)
-    path2=os.path.join(root_path, "temp.jpg") #
-    log_data = pd.read_csv(data_path)  # 打开csv文件
+    # print(root_path)
+    path2=os.path.join(root_path, "temp1.jpg") #
+    train_log_data = pd.read_csv(train_path)  # 打开csv文件
+    valid_log_data= pd.read_csv(valid_path)
     train_loss= []
-    train_loss= log_data.loc[:, 'train_loss']
+    train_loss= train_log_data.loc[:, 'train_loss']
     valid_loss = []
-    valid_loss = log_data.loc[:, 'train_acc']
-
-    num_list = []
-    num_list = log_data.loc[:, 'step']
-    plt.semilogy(num_list, train_loss, ls='-', color='orange',
+    valid_loss = valid_log_data.loc[:, 'valid_loss']
+    train_list = []
+    train_list = train_log_data.loc[:, 'step']
+    valid_list = []
+    valid_list = valid_log_data.loc[:, 'step']
+    
+    plt.subplot(2, 1, 1)
+    plt.semilogy(train_list, train_loss, ls='-', color='orange',
                  marker="o")  # 绘制x,y的折线图
-    plt.semilogy(num_list, valid_loss, ls='-', color='pink', marker="o")
-
-    plt.legend(labels=['train_loss', 'valid_loss'],
-               loc='best')
-    plt.xlabel('epoch')
-    plt.ylabel('loss/acc')
     plt.title('Training Curve')
+    plt.legend(labels=['train_loss'],
+            loc='best')
+    
+    plt.subplot(2, 1, 2)
+    plt.semilogy(valid_list, valid_loss, ls='-', color='b', 
+                 marker="h")
+    plt.legend(labels=['valid_loss'],
+               loc='best')
+    plt.xlabel('step')
+    
     file_image= str_time + '_' +str("{:.2f}".format(valid_loss[len(valid_loss) - 1])) +'.jpg'
     image_path=os.path.join(root_path, file_image)
     if isTrue:
