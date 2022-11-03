@@ -3,7 +3,7 @@
 from re import A
 import time
 import copy
-
+import pandas as pd
 import torchvision.models as models
 import torchvision.transforms as transforms
 from PIL import Image
@@ -298,12 +298,14 @@ if __name__ == "__main__":
 
     base_data_dir = '../data/'  # 数据集根目录，请将数据下载到此位置
     char_data_dir = './labels/'
+    str_time=time.strftime('%Y-%m-%d', time.localtime())
+    model_save_path = './weights/'+str_time+'/'
     dataset = Analysis_Recognition_Dataset(char_data_dir, base_data_dir)
     device_name = 'cuda' if torch.cuda.is_available() else 'cpu'
     device = torch.device(device_name)
     nrof_epochs = 20
     batch_size = 1
-    model_save_path = 'log/ex1_ocr_model.pth'
+   
 
     # 读取label-id映射关系记录文件
     lbl2id_map_path = dataset.lbl2id_map_path
@@ -358,7 +360,10 @@ if __name__ == "__main__":
     ocr_model.to(device)
     pretrain_model = bool(
         int(input("Whether to use pretrain_model?(1 or 0)\t")))
+    
 
+    df = pd.DataFrame(columns=['time', 'step', 'train_loss', 'valid_loss'])#列名
+    file_path='./log//train_record/'+str_time+'.csv'
     if not pretrain_model:
         # train prepare
         criterion = LabelSmoothing(size=tgt_vocab,
@@ -375,15 +380,15 @@ if __name__ == "__main__":
         model_opt = NoamOpt(d_model, 1, 400, optimizer)
 
         for epoch in range(nrof_epochs):
+            step=epoch
             print(f"\nepoch {epoch}")
-
             print("train...")
             ocr_model.train()
             loss_compute = SimpleLossCompute(ocr_model.generator, criterion,
                                              model_opt)
             train_mean_loss = run_epoch(train_loader, ocr_model, loss_compute,
                                         device)
-
+            train_loss="{:.5f}".format(train_mean_loss)
             if epoch % 10 == 0:
                 print("valid...")
                 ocr_model.eval()
@@ -391,10 +396,14 @@ if __name__ == "__main__":
                                                        criterion, None)
                 valid_mean_loss = run_epoch(valid_loader, ocr_model,
                                             valid_loss_compute, device)
+                valid_loss="{:.5f}".format(valid_mean_loss)
                 print(f"valid loss: {valid_mean_loss}")
-
-        # save model
-        torch.save(ocr_model.state_dict(), './log/trained_model/ocr_model.pt')
+                list = [str_time,step,train_loss, valid_loss]
+            
+            data = pd.DataFrame([list])
+            data.to_csv(file_path, mode='a',header=False,index=False)#mode设为a,就可以向csv文件追加数据了
+            # save model
+            torch.save(ocr_model.state_dict(), model_save_path+ '/'+str('%03d' %epoch) + '-train_loss' + str("{:.2f}".format(train_loss))+'.pt')
 
     else:
         ocr_model.load_state_dict(
