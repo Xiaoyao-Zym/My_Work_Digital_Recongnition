@@ -307,7 +307,7 @@ if __name__ == "__main__":
     device_name = 'cuda' if torch.cuda.is_available() else 'cpu'
     device = torch.device(device_name)
     nrof_epochs = 20
-    batch_size = 16
+    batch_size = 4
 
     # 读取label-id映射关系记录文件
     lbl2id_map_path = dataset.lbl2id_map_path
