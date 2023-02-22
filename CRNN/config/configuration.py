@@ -23,7 +23,7 @@ from log.loss import loss
 def parse_opt():
     parser = argparse.ArgumentParser(description='train')
     parser.add_argument('--epochs', type=int, default=20, help='训练多少轮')
-    parser.add_argument('--batch_size', type=int, default=64, help='批次大小')
+    parser.add_argument('--batch_size', type=int, default=32, help='批次大小')
     parser.add_argument('--lr', type=float, default=0.01, help='学习率')
     parser.add_argument('--chinese', type=str, default='./labels/figure.txt', help='字符集保存路径')
     parser.add_argument('--images', type=str, default='../data/image/', help='你可以设置你所以图片的地址，像现在的默认值，也可以设置为data/images/'

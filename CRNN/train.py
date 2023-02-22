@@ -127,9 +127,6 @@ def train(opt):
         test(crnn, test_iter, criterion, device, converter, opt.all)
 
 
-
-
-
 if __name__ == '__main__':
     opt = parse_opt()
     train(opt)
