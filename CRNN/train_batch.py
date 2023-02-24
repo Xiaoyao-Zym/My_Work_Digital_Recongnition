@@ -11,7 +11,8 @@ def train_batch(crnn, train_iter, optimizer, criterion, device, converter):
     batch_size = images.size(0)
     text, length = converter.encode(labels)
 
-    preds = crnn(images, length) 
+    # preds = crnn(images, length) 
+    preds = crnn(images) 
     preds_size = torch.IntTensor([preds.size(0)] * batch_size)
     print(preds.shape, text.shape, preds_size.shape, length.shape)
 

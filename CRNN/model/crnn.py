@@ -64,17 +64,17 @@ class Attention(nn.Module):
         self.attention_cell = AttentionCell(input_size, hidden_size)
         self.input_size = input_size
         self.hidden_size = hidden_size
-        self.generator = nn.Linear(hidden_size, num_classes-1)
+        self.generator = nn.Linear(hidden_size, num_classes)
         self.processed_batches = 0
 
     def forward(self, feats, text_length):
         self.processed_batches = self.processed_batches + 1
-        nC = feats.size(0)
+        nT = feats.size(0)
         nB = feats.size(1)
-        nT = feats.size(2)
+        nC = feats.size(2)
         hidden_size = self.hidden_size
         input_size = self.input_size
-        print("in=", input_size)
+        print("input=", input_size)
         assert(input_size == nC)
         assert(nB == text_length.numel())
 
@@ -163,15 +163,15 @@ class CRNN(nn.Module):
 
     def forward(self, input,  length):
         conv = self.cnn(input) #input: [10, 1, 32, 280], 
-        print(conv.size())# [10, 512, 1, 251]
+        #print(conv.size())# [10, 512, 1, 251]
         b, c, h, w = conv.size() #output: ([10, 512, 1, 251])
         assert h == 1, '图片高度经过卷积之后必须为1'
         conv = conv.squeeze(2)   #output: ([10, 512, 251])
         conv = conv.permute(2, 0, 1)  # [w, b, c]
-        print(conv.shape) #([251, 10, 11])
+        #print(conv.shape) #([251, 10, 11])
         output = self.rnn(conv)     # seq * batch * n_classes// 25 × batchsize × 251（隐藏节点个数）
-        print(output.shape)     #([251, 10, 11])
-        print(length)
-        #output = self.attention(output, length)
-        print(output.shape)
+        #print(output.shape)     #([251, 10, 11])
+        # print(length)
+        # output = self.attention(output, length)
+        # print(output.shape)
         return output

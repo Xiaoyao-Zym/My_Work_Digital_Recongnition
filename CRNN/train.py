@@ -17,6 +17,8 @@ import pandas as pd
 import time
 from log.loss import loss
 from config.configuration import parse_opt
+from model.mobilenetv3 import MobileNetV3_Large
+from model.mobilenetv3 import MobileNetV3_Small
 
 def train(opt):
     if not os.path.exists(opt.name):
@@ -32,7 +34,8 @@ def train(opt):
     # 验证集
     val_loader = get_DataLoader('val', opt)
     criterion = nn.CTCLoss(reduction='sum')
-    crnn = CRNN(opt.imgH, opt.nc, nclass, opt.nh)
+    # crnn=CRNN(opt.imgH, opt.nc, nclass, opt.nh)
+    crnn = MobileNetV3_Large(nclass)
 
     if os.path.exists(opt.weights):
         crnn.load_state_dict(torch.load(opt.weights))
