@@ -10,7 +10,7 @@ import argparse
 from model.crnn import CRNN
 from utils.aftertreatment import StrLabelConverter
 from dataset.datasets import get_DataLoader
-from utils.fileoperation import get_chinese
+from utils.fileoperation import get_figure
 from log.log import log_test, log_device, log_load_model
 
 
@@ -56,7 +56,7 @@ def test(crnn, test_iter, criterion, device, converter, flag=True):
 
 
 def main(opt):
-    chinese = get_chinese(opt.chinese)
+    chinese = get_figure(opt.chinese)
     converter = StrLabelConverter(chinese)
     nclass = len(chinese) + 1
 

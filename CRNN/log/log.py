@@ -30,7 +30,10 @@ def log_epoch(epoch, loss, acc, mode):
     msg = 'epoch {}: {}_loss={}, {}_acc={}'.format(epoch, mode, loss, mode, acc)
     log(msg)
 
-
+def log_epoch_val(loss, acc, mode):
+    msg = '{}_loss={}, {}_acc={}'.format(mode, loss, mode, acc)
+    log(msg)
+    
 def log_save_model(epoch, loss, acc, flag=str_time):
     msg = '\033[1;32msave model {}_{}_{:.2f}_{:.2f}.pt finish, the saved path is output/checkpoint\033[0m'.format(flag, epoch, loss, acc)
     log(msg)

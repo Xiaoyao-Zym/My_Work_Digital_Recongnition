@@ -31,11 +31,17 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def loss(isTrue, data_path):
+def loss(isTrue, data_path, model_type):
     #log_data = pd.read_csv('./log/train_record/' + str_time + '.csv')  # 打开csv文件
     str_time=time.strftime('%Y-%m-%d_', time.localtime())
-    root_path =os.path.join(os.path.realpath(os.curdir), 'log', 'loss') #获取当前目录的绝对路径
-    print(root_path)
+    root_path =os.path.join(os.path.realpath(os.curdir), 'log', 'loss', model_type) #获取当前目录的绝对路径
+    
+    if os.path.isdir(root_path):
+        # print('文件夹已存在')
+        pass
+    else:
+        os.makedirs(root_path)
+    
     path2=os.path.join(root_path, "temp.jpg") #
     log_data = pd.read_csv(data_path)  # 打开csv文件
     train_loss_list = []
@@ -59,7 +65,7 @@ def loss(isTrue, data_path):
     plt.xlabel('epoch')
     plt.ylabel('loss/acc')
     plt.title('Training Curve')
-    file_image= str_time + '-' +str("{:.2f}".format(val_acc_list[len(val_acc_list) - 1])) +'.jpg'
+    file_image= str_time +str("{:.2f}".format(val_acc_list[len(val_acc_list) - 1])) +'.jpg'
     image_path=os.path.join(root_path, file_image)
     if isTrue:
         plt.savefig(image_path)

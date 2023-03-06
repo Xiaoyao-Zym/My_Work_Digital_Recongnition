@@ -20,7 +20,7 @@ def val(crnn, val_iter, criterion, device, converter, epoch):
             text, length = converter.encode(labels)
 
             with torch.no_grad():
-                preds = crnn(images,length)
+                preds = crnn(images, length)
                 preds_size = torch.IntTensor([preds.size(0)] * batch_size)
 
                 loss = criterion(preds, text, preds_size, length)
@@ -38,5 +38,6 @@ def val(crnn, val_iter, criterion, device, converter, epoch):
             tbar.set_description('epoch {}'.format(epoch))
             tbar.set_postfix(loss=loss.item() / batch_size, acc=acc_num / batch_size)
             tbar.update()
+            
     log_epoch(epoch, total_loss / total_num, total_acc / total_num, 'val')
     return total_loss / total_num, total_acc / total_num

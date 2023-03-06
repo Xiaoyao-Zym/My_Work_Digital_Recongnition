@@ -68,6 +68,7 @@ class Block(nn.Module):
         if self.se != None:
             out = self.se(out)
         out = out + self.shortcut(x) if self.stride==1 else out
+        print(out.shape)
         return out
 
 
@@ -135,22 +136,37 @@ class MobileNetV3_Large(nn.Module):
 class MobileNetV3_Small(nn.Module):
     def __init__(self, num_classes=1000):
         super(MobileNetV3_Small, self).__init__()
-        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=2, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(16)
+        #self.conv1 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, stride=2, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=8, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(8)
+        #self.bn1 = nn.BatchNorm2d(16)
         self.hs1 = hswish()
 
         self.bneck = nn.Sequential(
-            Block(3, 16, 16, 16, nn.ReLU(inplace=True), SeModule(16), 2),
-            Block(3, 16, 72, 24, nn.ReLU(inplace=True), None, (2,1)),
-            Block(3, 24, 88, 24, nn.ReLU(inplace=True), None, 1),
-            Block(5, 24, 96, 40, hswish(), SeModule(40), (2,1)),
+            # Block(3, 16, 16, 16, nn.ReLU(inplace=True), SeModule(16), 2),
+            #torch.Size([2, 8, 32, 280])
+            Block(3, 8, 16, 16, nn.ReLU(inplace=True), SeModule(16), 2), 
+            #torch.Size([2, 16, 16, 140])
+            Block(3, 16, 72, 24, nn.ReLU(inplace=True), None, (2,1)),   
+            #torch.Size([2, 24, 8, 140])
+            Block(3, 24, 88, 24, nn.ReLU(inplace=True), None, 1),   
+            #torch.Size([2, 24, 8, 140])
+            Block(5, 24, 96, 40, hswish(), SeModule(40), (2,1)),   
+            #torch.Size([2, 40, 4, 140])
             Block(5, 40, 240, 40, hswish(), SeModule(40), 1),
+            #torch.Size([2, 40, 4, 140])
             Block(5, 40, 240, 40, hswish(), SeModule(40), 1),
+            #torch.Size([2, 40, 4, 140])
             Block(5, 40, 120, 48, hswish(), SeModule(48), 1),
+            #torch.Size([2, 48, 4, 140])
             Block(5, 48, 144, 48, hswish(), SeModule(48), 1),
+            #torch.Size([2, 48, 4, 140])
             Block(5, 48, 288, 96, hswish(), SeModule(96), (2,1)),
+             #torch.Size([2, 96, 4, 140])
             Block(5, 96, 576, 96, hswish(), SeModule(96), 1),
+             #torch.Size([2, 96, 4, 140])
             Block(5, 96, 576, 96, hswish(), SeModule(96), 1),
+             #torch.Size([2, 96, 4, 140])
         )
 
 
@@ -178,13 +194,20 @@ class MobileNetV3_Small(nn.Module):
                     init.constant_(m.bias, 0)
 
     def forward(self, x):
+        print(x.shape)
         out = self.hs1(self.bn1(self.conv1(x)))
+        print(out.shape)
         out = self.bneck(out)
+        print(out.shape)
         out = self.hs2(self.bn2(self.conv2(out)))
+        print(out.shape)
         out = F.avg_pool2d(out, 7)
         out = out.view(out.size(0), -1)
+        print(out.shape)
         out = self.hs3(self.bn3(self.linear3(out)))
+        print(out.shape)
         out = self.linear4(out)
+        print(out.shape)
         return out
 
 

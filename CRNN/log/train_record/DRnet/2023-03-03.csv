@@ -1,0 +1,2 @@
+time,step,train_loss,train_acc,val_loss,val_acc
+2023-03-03,1,12.91130,0.00000,10.74945,0.00000

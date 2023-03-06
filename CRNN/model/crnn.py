@@ -3,7 +3,11 @@ import torch.nn as nn
 #from model.cabm import CBAM
 import torch.nn.functional as F
 from torch.autograd import Variable
+# from mobilenetv3 import hsigmoid
+# from mobilenetv3 import hswish
+
 class BidirectionalLSTM(nn.Module):
+    
     def __init__(self, nIn, nHidden, nOut):
         """
         :param nIn: 输入层神经元个数
@@ -23,6 +27,7 @@ class BidirectionalLSTM(nn.Module):
         t_rec = recurrent.view(T * b, h)
         output = self.embedding(t_rec)
         output = output.view(T, b, -1)
+        #print(output.shape)
         return output
 
 class AttentionCell(nn.Module):
@@ -149,7 +154,8 @@ class CRNN(nn.Module):
 
             nn.Conv2d(in_channels=512, out_channels=512, kernel_size=2, stride=1, padding=0, bias=False),
             nn.BatchNorm2d(512),
-            nn.ReLU(True),
+            nn.ReLU(True)
+            #hswish(),
         )
         # self.cabm=nn.Sequential(
         #     CBAM()
@@ -159,10 +165,12 @@ class CRNN(nn.Module):
             BidirectionalLSTM(512, nh, nh),
             BidirectionalLSTM(nh, nh, nclass)
         )
-        self.attention = Attention(nh, nh, nclass)
+        #self.attention = Attention(nh, nh, nclass)
+        #self.hs = hswish()
 
-    def forward(self, input,  length):
-        conv = self.cnn(input) #input: [10, 1, 32, 280], 
+    def forward(self, input):
+        #conv =self.hs( self.cnn(input))#input: [10, 1, 32, 280], 
+        conv=self.cnn(input)
         #print(conv.size())# [10, 512, 1, 251]
         b, c, h, w = conv.size() #output: ([10, 512, 1, 251])
         assert h == 1, '图片高度经过卷积之后必须为1'
@@ -175,3 +183,8 @@ class CRNN(nn.Module):
         # output = self.attention(output, length)
         # print(output.shape)
         return output
+
+if __name__ == '__main__':
+    net2=CRNN(imgH=32, nc=1,nh=251, nclass=11)
+    
+
